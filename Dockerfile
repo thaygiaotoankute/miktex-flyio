@@ -2,7 +2,7 @@ FROM node:18-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Cài đặt các gói cần thiết cho MiKTeX
+# Cài đặt các gói cần thiết
 RUN apt-get update && apt-get install -y \
     wget \
     perl \
@@ -12,17 +12,23 @@ RUN apt-get update && apt-get install -y \
     libcairo2 \
     libunistring2 \
     libpoppler-cpp-dev \
+    gnupg \
+    apt-transport-https \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Tạo thư mục làm việc
 WORKDIR /app
 
-# Tải và cài đặt MiKTeX
-RUN wget https://miktex.org/download/ubuntu/jammy/amd64/miktex-latest-linux-x86_64.deb \
-    && dpkg -i miktex-latest-linux-x86_64.deb || true \
-    && apt-get update && apt-get -f install -y \
-    && rm miktex-latest-linux-x86_64.deb
+# Thêm repository MiKTeX
+RUN wget -q https://miktex.org/download/key && \
+    apt-key add key && \
+    rm key && \
+    echo "deb [arch=amd64] https://miktex.org/download/debian bullseye main" > /etc/apt/sources.list.d/miktex.list && \
+    apt-get update && \
+    apt-get install -y miktex && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Cấu hình MiKTeX
 RUN miktexsetup finish
