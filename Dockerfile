@@ -22,7 +22,8 @@ WORKDIR /app
 RUN mkdir -p /usr/local/share/texmf/tex/latex/local
 
 # Sao chép ex_test.sty vào texmf toàn cục
-COPY tex/ex_test.sty /usr/local/share/texmf/tex/latex/local/
+# Sao chép tất cả các gói từ thư mục tex vào texmf toàn cục
+COPY tex/ /usr/local/share/texmf/tex/latex/local/
 
 # Cập nhật cơ sở dữ liệu TeX
 RUN texhash
