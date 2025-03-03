@@ -1,8 +1,8 @@
-FROM ubuntu:22.04
+FROM node:18-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Cài đặt các gói cần thiết
+# Cài đặt các gói cần thiết cho MiKTeX
 RUN apt-get update && apt-get install -y \
     wget \
     perl \
@@ -12,15 +12,8 @@ RUN apt-get update && apt-get install -y \
     libcairo2 \
     libunistring2 \
     libpoppler-cpp-dev \
-    nodejs \
-    npm \
-    curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
-# Cài đặt Node.js phiên bản mới hơn
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y nodejs
 
 # Tạo thư mục làm việc
 WORKDIR /app
@@ -28,7 +21,7 @@ WORKDIR /app
 # Tải và cài đặt MiKTeX
 RUN wget https://miktex.org/download/ubuntu/jammy/amd64/miktex-latest-linux-x86_64.deb \
     && dpkg -i miktex-latest-linux-x86_64.deb || true \
-    && apt-get -f install -y \
+    && apt-get update && apt-get -f install -y \
     && rm miktex-latest-linux-x86_64.deb
 
 # Cấu hình MiKTeX
