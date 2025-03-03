@@ -1,0 +1,28 @@
+name: Deploy MiKTeX API to Fly.io
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy MiKTeX API to Fly.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Fly CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+      
+      - name: Deploy to Fly.io
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          # Kiểm tra volume đã tồn tại hay chưa
+          if ! flyctl volumes list --app miktex-api | grep -q miktex_data; then
+            flyctl volumes create miktex_data --size 10 --app miktex-api
+          fi
+          
+          # Triển khai ứng dụng
+          flyctl deploy --app miktex-api
