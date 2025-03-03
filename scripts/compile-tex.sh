@@ -24,11 +24,16 @@ FILE_NAME=$(basename "$TEX_FILE")
 # Di chuyển đến thư mục chứa file
 cd "$DIR_NAME" || exit 1
 
-# Chạy biên dịch
-echo "Đang biên dịch $FILE_NAME với $COMPILER..."
+# Chạy biên dịch lần 1
+echo "Đang biên dịch $FILE_NAME với $COMPILER (lần 1)..."
 $COMPILER $OPTIONS "$FILE_NAME"
 
-# Chạy thêm lần 2 để xử lý các tham chiếu (nếu cần)
+# Chạy biên dịch lần 2 để xử lý tham chiếu
+echo "Đang biên dịch $FILE_NAME với $COMPILER (lần 2)..."
+$COMPILER $OPTIONS "$FILE_NAME"
+
+# Chạy biên dịch lần 3 để đảm bảo tất cả tham chiếu được xử lý
+echo "Đang biên dịch $FILE_NAME với $COMPILER (lần 3)..."
 $COMPILER $OPTIONS "$FILE_NAME"
 
 # Kiểm tra kết quả
