@@ -2,18 +2,10 @@ FROM node:18-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Cài đặt các gói TeXLive cần thiết
+# Cài đặt TeXLive cơ bản nhất
 RUN apt-get update && apt-get install -y \
-    texlive-base \
-    texlive-latex-recommended \
+    texlive \
     texlive-latex-extra \
-    texlive-fonts-recommended \
-    texlive-pictures \
-    texlive-science \
-    texlive-lang-other \        # Thay thế texlive-lang-vietnamese
-    texlive-lang-european \     # Thay thế texlive-lang-french
-    texlive-pstricks \
-    texlive-plain-generic \
     wget \
     curl \
     perl \
