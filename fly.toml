@@ -11,6 +11,6 @@ primary_region = "sin"  # Thay đổi thành region gần bạn nhất
   min_machines_running = 0
   processes = ["app"]
 
-[mounts]
-  source = "miktex_data"
-  destination = "/var/lib/miktex"
+# [mounts]
+#   source = "miktex_data"
+#   destination = "/var/lib/miktex"
