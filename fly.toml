@@ -1,5 +1,5 @@
 app = "miktex-api"
-primary_region = "sin"  # Bạn có thể thay đổi thành region gần bạn nhất
+primary_region = "sin"  # Thay đổi thành region gần bạn nhất
 
 [build]
 
