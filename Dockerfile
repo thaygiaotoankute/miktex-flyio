@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y \
     texlive-fonts-recommended \
     texlive-pictures \
     texlive-science \
-    texlive-lang-vietnamese \
-    texlive-lang-french \
+    texlive-lang-other \        # Thay thế texlive-lang-vietnamese
+    texlive-lang-european \     # Thay thế texlive-lang-french
     texlive-pstricks \
     texlive-plain-generic \
     wget \
