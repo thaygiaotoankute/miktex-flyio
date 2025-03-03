@@ -2,10 +2,11 @@ FROM node:18-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Cài đặt TeXLive cơ bản nhất
+# Cài đặt TeXLive cơ bản
 RUN apt-get update && apt-get install -y \
     texlive \
     texlive-latex-extra \
+    texlive-lang-all \
     wget \
     curl \
     perl \
@@ -21,7 +22,6 @@ WORKDIR /app
 # Tạo thư mục texmf toàn cục
 RUN mkdir -p /usr/local/share/texmf/tex/latex/local
 
-# Sao chép ex_test.sty vào texmf toàn cục
 # Sao chép tất cả các gói từ thư mục tex vào texmf toàn cục
 COPY tex/ /usr/local/share/texmf/tex/latex/local/
 
