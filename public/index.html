@@ -190,33 +190,6 @@
             transform: translateY(0);
         }
         
-        /* PDF Preview loading indicator */
-        .pdf-loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: #666;
-        }
-        
-        .pdf-loading::before {
-            content: '';
-            display: block;
-            width: 40px;
-            height: 40px;
-            margin-bottom: 10px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4CAF50;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
         /* Responsive design */
         @media (max-width: 900px) {
             .container {
@@ -472,7 +445,7 @@
             }
         }
         
-        // Biên dịch LaTeX với Giải pháp 4 (sử dụng blob URL)
+        // Biên dịch LaTeX
         async function compileLaTeX() {
             const texContent = document.getElementById('tex-editor').value;
             const logOutput = document.getElementById('log-output');
@@ -481,47 +454,13 @@
             
             // Hiển thị trạng thái đang tải
             logOutput.textContent = 'Đang biên dịch...';
-            
-            // Hiển thị loading animation trong iframe
-            pdfPreview.srcdoc = `
-                <html>
-                <head>
-                    <style>
-                        body {
-                            display: flex;
-                            flex-direction: column;
-                            align-items: center;
-                            justify-content: center;
-                            height: 100vh;
-                            margin: 0;
-                            font-family: Arial, sans-serif;
-                            color: #666;
-                        }
-                        .loader {
-                            border: 5px solid #f3f3f3;
-                            border-top: 5px solid #4CAF50;
-                            border-radius: 50%;
-                            width: 50px;
-                            height: 50px;
-                            animation: spin 1s linear infinite;
-                            margin-bottom: 20px;
-                        }
-                        @keyframes spin {
-                            0% { transform: rotate(0deg); }
-                            100% { transform: rotate(360deg); }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="loader"></div>
-                    <div>Đang xử lý...</div>
-                </body>
-                </html>
-            `;
-            
+            pdfPreview.src = 'about:blank';
             compileBtn.disabled = true;
             
             try {
+                // Thêm timestamp vào URL để tránh cache
+                const timestamp = new Date().getTime();
+                
                 const response = await fetch(`${API_BASE_URL}/api/compile`, {
                     method: 'POST',
                     headers: {
@@ -540,98 +479,58 @@
                 logOutput.textContent = data.logDetail || data.logOutput || '';
                 
                 if (data.success) {
-                    try {
-                        // Tạo URL tương đối
-                        let pdfUrl = data.pdfUrl;
-                        if (pdfUrl.startsWith('http://')) {
-                            const urlObj = new URL(pdfUrl);
-                            pdfUrl = urlObj.pathname;
-                        }
-                        
-                        // Log thông tin URL để debug
-                        console.log("Đường dẫn PDF gốc:", data.pdfUrl);
-                        console.log("Đường dẫn PDF đã chuyển đổi:", pdfUrl);
-                        
-                        // Tải PDF qua fetch API
-                        const pdfResponse = await fetch(pdfUrl);
-                        
-                        if (!pdfResponse.ok) {
-                            throw new Error(`HTTP error! Status: ${pdfResponse.status}`);
-                        }
-                        
-                        const pdfBlob = await pdfResponse.blob();
-                        
-                        // Tạo blob URL (luôn là https vì nó được tạo bởi trình duyệt)
-                        const blobUrl = URL.createObjectURL(pdfBlob);
-                        
-                        // Hiển thị PDF từ blob URL
-                        pdfPreview.src = blobUrl;
-                        
-                        // Xóa blob URL khi iframe được tải để giải phóng bộ nhớ
-                        pdfPreview.onload = () => {
-                            // Đợi một chút trước khi revoke URL để đảm bảo iframe đã tải xong
-                            setTimeout(() => {
-                                URL.revokeObjectURL(blobUrl);
-                            }, 1000);
-                        };
-                        
-                        // Thêm link để mở PDF trong tab mới
-                        const linkElement = document.createElement('a');
-                        linkElement.href = blobUrl;
-                        linkElement.target = '_blank';
-                        linkElement.className = 'pdf-link';
-                        linkElement.textContent = 'Mở PDF trong tab mới';
-                        
-                        // Xóa link cũ nếu có
-                        const oldLinks = logOutput.querySelectorAll('.pdf-link');
-                        oldLinks.forEach(link => link.remove());
-                        
-                        // Thêm thông báo thành công và link
-                        logOutput.innerHTML = `Biên dịch thành công!<br><br>${logOutput.textContent}`;
-                        logOutput.appendChild(document.createElement('br'));
-                        logOutput.appendChild(linkElement);
-                        
-                    } catch (error) {
-                        console.error('Lỗi khi tải PDF:', error);
-                        logOutput.innerHTML = `Biên dịch thành công, nhưng gặp lỗi khi hiển thị PDF: ${error.message}<br><br>${logOutput.textContent}`;
+                    // Tạo URL gốc từ phản hồi API
+                    let pdfUrl = data.pdfUrl;
+                    console.log("API trả về URL:", pdfUrl);
+                    
+                    // Chuyển đổi HTTP URL thành HTTPS nếu cần
+                    if (pdfUrl.startsWith('http://')) {
+                        // Tạo URL tương đối bằng cách lấy chỉ phần đường dẫn
+                        const urlObj = new URL(pdfUrl);
+                        pdfUrl = urlObj.pathname;
+                        console.log("URL tương đối:", pdfUrl);
                     }
+                    
+                    // Thêm timestamp để ngăn cache
+                    pdfUrl = `${pdfUrl}?t=${timestamp}`;
+                    
+                    // Hiển thị PDF trong iframe
+                    pdfPreview.src = pdfUrl;
+                    
+                    // Tạo link để mở PDF trong tab mới
+                    const linkElement = document.createElement('a');
+                    linkElement.href = pdfUrl;
+                    linkElement.target = '_blank';
+                    linkElement.className = 'pdf-link';
+                    linkElement.textContent = 'Mở PDF trong tab mới';
+                    
+                    // Xóa link cũ nếu có
+                    const oldLinks = logOutput.querySelectorAll('.pdf-link');
+                    oldLinks.forEach(link => link.remove());
+                    
+                    // Thêm thông báo thành công và link
+                    logOutput.innerHTML = `Biên dịch thành công!<br><br>${logOutput.textContent}`;
+                    logOutput.appendChild(document.createElement('br'));
+                    logOutput.appendChild(linkElement);
+                    
                 } else {
                     // Hiển thị thông báo lỗi
                     console.error('Biên dịch thất bại:', data.message);
                     logOutput.textContent = `Biên dịch thất bại: ${data.message}\n\n${logOutput.textContent}`;
-                    
-                    // Hiển thị thông báo lỗi trong iframe
-                    pdfPreview.srcdoc = `
-                        <html>
-                        <head>
-                            <style>
-                                body {
-                                    display: flex;
-                                    flex-direction: column;
-                                    align-items: center;
-                                    justify-content: center;
-                                    height: 100vh;
-                                    margin: 0;
-                                    font-family: Arial, sans-serif;
-                                    color: #e53935;
-                                }
-                                .error-icon {
-                                    font-size: 48px;
-                                    margin-bottom: 20px;
-                                }
-                            </style>
-                        </head>
-                        <body>
-                            <div class="error-icon">⚠️</div>
-                            <div>Biên dịch thất bại. Vui lòng kiểm tra log để biết chi tiết.</div>
-                        </body>
-                        </html>
-                    `;
                 }
             } catch (error) {
                 console.error('Lỗi khi gọi API:', error);
                 logOutput.textContent = `Lỗi khi gọi API: ${error.message}`;
-                
+            } finally {
+                compileBtn.disabled = false;
+            }
+        }
+        
+        // Xử lý lỗi iframe
+        function handleIframeError() {
+            const pdfPreview = document.getElementById('pdf-preview');
+            pdfPreview.addEventListener('error', function(e) {
+                console.error('Lỗi khi tải PDF trong iframe:', e);
                 // Hiển thị thông báo lỗi trong iframe
                 pdfPreview.srcdoc = `
                     <html>
@@ -655,13 +554,11 @@
                     </head>
                     <body>
                         <div class="error-icon">⚠️</div>
-                        <div>Lỗi khi kết nối đến API: ${error.message}</div>
+                        <div>Lỗi khi tải PDF. Vui lòng thử lại hoặc kiểm tra console để biết thêm chi tiết.</div>
                     </body>
                     </html>
                 `;
-            } finally {
-                compileBtn.disabled = false;
-            }
+            });
         }
         
         // Gắn sự kiện
@@ -675,11 +572,11 @@
             }
         });
         
+        // Xử lý lỗi iframe
+        handleIframeError();
+        
         // Kiểm tra trạng thái khi trang tải
         window.addEventListener('load', checkApiStatus);
-        
-        // Cập nhật trạng thái API mỗi 30 giây
-        setInterval(checkApiStatus, 30000);
     </script>
 </body>
 </html>
