@@ -1,80 +1,257 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LaTeX Compiler với Ex_Test</title>
     <style>
+        /* Reset CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
             line-height: 1.6;
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
         }
+        
+        h1, h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        h1 {
+            font-size: 2.4rem;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background-color: #4CAF50;
+            border-radius: 2px;
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            border-bottom: 2px solid #eee;
+        }
+        
         .container {
             display: flex;
-            gap: 20px;
-            margin-top: 20px;
+            gap: 30px;
+            margin-top: 30px;
         }
-        .editor-container {
+        
+        .editor-container, .preview-container {
             flex: 1;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: all 0.3s ease;
         }
-        .preview-container {
-            flex: 1;
+        
+        .editor-container:hover, .preview-container:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
         }
+        
         textarea {
             width: 100%;
-            height: 400px;
-            font-family: monospace;
-            padding: 10px;
-            border: 1px solid #ccc;
+            height: 450px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
             font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            transition: border 0.3s ease;
         }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        
         button {
-            margin-top: 10px;
-            padding: 10px 20px;
+            margin-top: 15px;
+            padding: 12px 24px;
             background-color: #4CAF50;
             color: white;
             border: none;
+            border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
+        
         button:hover {
             background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
         iframe {
             width: 100%;
-            height: 500px;
-            border: 1px solid #ccc;
-        }
-        #status, #log-output {
-            margin-top: 10px;
-            padding: 10px;
+            height: 550px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
             background-color: #f5f5f5;
-            border: 1px solid #ccc;
-            font-family: monospace;
-            white-space: pre-wrap;
         }
-        #log-output {
+        
+        #status, #log-output {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            white-space: pre-wrap;
             max-height: 200px;
             overflow-y: auto;
-            font-size: 12px;
         }
+        
+        #status {
+            font-weight: bold;
+            text-align: center;
+            background-color: #e8f5e9;
+            border-color: #c8e6c9;
+            color: #2e7d32;
+        }
+        
+        #status.offline {
+            background-color: #ffebee;
+            border-color: #ffcdd2;
+            color: #c62828;
+        }
+        
+        #log-output {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #333;
+        }
+        
         .template-buttons {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
+        
         .template-button {
-            padding: 5px 10px;
+            padding: 8px 12px;
             background-color: #f1f1f1;
-            border: 1px solid #ccc;
+            border: 1px solid #ddd;
+            border-radius: 4px;
             cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
         }
+        
         .template-button:hover {
+            background-color: #e0e0e0;
+            transform: translateY(-1px);
+        }
+        
+        .template-button:active {
             background-color: #ddd;
+            transform: translateY(0);
+        }
+        
+        /* PDF Preview loading indicator */
+        .pdf-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #666;
+        }
+        
+        .pdf-loading::before {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 40px;
+            margin-bottom: 10px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive design */
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            textarea, iframe {
+                height: 350px;
+            }
+        }
+        
+        /* PDF link styling */
+        .pdf-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 15px;
+            background-color: #2196F3;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        
+        .pdf-link:hover {
+            background-color: #0b7dda;
+            transform: translateY(-1px);
         }
     </style>
 </head>
@@ -287,13 +464,15 @@
                 const data = await response.json();
                 statusElement.textContent = `API Status: Online (${new Date(data.timestamp).toLocaleString()})`;
                 statusElement.style.color = 'green';
+                statusElement.classList.remove('offline');
             } catch (error) {
                 statusElement.textContent = `API Status: Offline hoặc không thể kết nối (${error.message})`;
                 statusElement.style.color = 'red';
+                statusElement.classList.add('offline');
             }
         }
         
-        // Biên dịch LaTeX
+        // Biên dịch LaTeX với Giải pháp 4 (sử dụng blob URL)
         async function compileLaTeX() {
             const texContent = document.getElementById('tex-editor').value;
             const logOutput = document.getElementById('log-output');
@@ -302,7 +481,44 @@
             
             // Hiển thị trạng thái đang tải
             logOutput.textContent = 'Đang biên dịch...';
-            pdfPreview.src = 'about:blank';
+            
+            // Hiển thị loading animation trong iframe
+            pdfPreview.srcdoc = `
+                <html>
+                <head>
+                    <style>
+                        body {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            justify-content: center;
+                            height: 100vh;
+                            margin: 0;
+                            font-family: Arial, sans-serif;
+                            color: #666;
+                        }
+                        .loader {
+                            border: 5px solid #f3f3f3;
+                            border-top: 5px solid #4CAF50;
+                            border-radius: 50%;
+                            width: 50px;
+                            height: 50px;
+                            animation: spin 1s linear infinite;
+                            margin-bottom: 20px;
+                        }
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="loader"></div>
+                    <div>Đang xử lý...</div>
+                </body>
+                </html>
+            `;
+            
             compileBtn.disabled = true;
             
             try {
@@ -324,17 +540,125 @@
                 logOutput.textContent = data.logDetail || data.logOutput || '';
                 
                 if (data.success) {
-                    // Hiển thị PDF
-                    pdfPreview.src = data.pdfUrl;
-                    logOutput.textContent = `Biên dịch thành công!\n\n${logOutput.textContent}`;
+                    try {
+                        // Tạo URL tương đối
+                        let pdfUrl = data.pdfUrl;
+                        if (pdfUrl.startsWith('http://')) {
+                            const urlObj = new URL(pdfUrl);
+                            pdfUrl = urlObj.pathname;
+                        }
+                        
+                        // Log thông tin URL để debug
+                        console.log("Đường dẫn PDF gốc:", data.pdfUrl);
+                        console.log("Đường dẫn PDF đã chuyển đổi:", pdfUrl);
+                        
+                        // Tải PDF qua fetch API
+                        const pdfResponse = await fetch(pdfUrl);
+                        
+                        if (!pdfResponse.ok) {
+                            throw new Error(`HTTP error! Status: ${pdfResponse.status}`);
+                        }
+                        
+                        const pdfBlob = await pdfResponse.blob();
+                        
+                        // Tạo blob URL (luôn là https vì nó được tạo bởi trình duyệt)
+                        const blobUrl = URL.createObjectURL(pdfBlob);
+                        
+                        // Hiển thị PDF từ blob URL
+                        pdfPreview.src = blobUrl;
+                        
+                        // Xóa blob URL khi iframe được tải để giải phóng bộ nhớ
+                        pdfPreview.onload = () => {
+                            // Đợi một chút trước khi revoke URL để đảm bảo iframe đã tải xong
+                            setTimeout(() => {
+                                URL.revokeObjectURL(blobUrl);
+                            }, 1000);
+                        };
+                        
+                        // Thêm link để mở PDF trong tab mới
+                        const linkElement = document.createElement('a');
+                        linkElement.href = blobUrl;
+                        linkElement.target = '_blank';
+                        linkElement.className = 'pdf-link';
+                        linkElement.textContent = 'Mở PDF trong tab mới';
+                        
+                        // Xóa link cũ nếu có
+                        const oldLinks = logOutput.querySelectorAll('.pdf-link');
+                        oldLinks.forEach(link => link.remove());
+                        
+                        // Thêm thông báo thành công và link
+                        logOutput.innerHTML = `Biên dịch thành công!<br><br>${logOutput.textContent}`;
+                        logOutput.appendChild(document.createElement('br'));
+                        logOutput.appendChild(linkElement);
+                        
+                    } catch (error) {
+                        console.error('Lỗi khi tải PDF:', error);
+                        logOutput.innerHTML = `Biên dịch thành công, nhưng gặp lỗi khi hiển thị PDF: ${error.message}<br><br>${logOutput.textContent}`;
+                    }
                 } else {
                     // Hiển thị thông báo lỗi
                     console.error('Biên dịch thất bại:', data.message);
                     logOutput.textContent = `Biên dịch thất bại: ${data.message}\n\n${logOutput.textContent}`;
+                    
+                    // Hiển thị thông báo lỗi trong iframe
+                    pdfPreview.srcdoc = `
+                        <html>
+                        <head>
+                            <style>
+                                body {
+                                    display: flex;
+                                    flex-direction: column;
+                                    align-items: center;
+                                    justify-content: center;
+                                    height: 100vh;
+                                    margin: 0;
+                                    font-family: Arial, sans-serif;
+                                    color: #e53935;
+                                }
+                                .error-icon {
+                                    font-size: 48px;
+                                    margin-bottom: 20px;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="error-icon">⚠️</div>
+                            <div>Biên dịch thất bại. Vui lòng kiểm tra log để biết chi tiết.</div>
+                        </body>
+                        </html>
+                    `;
                 }
             } catch (error) {
                 console.error('Lỗi khi gọi API:', error);
                 logOutput.textContent = `Lỗi khi gọi API: ${error.message}`;
+                
+                // Hiển thị thông báo lỗi trong iframe
+                pdfPreview.srcdoc = `
+                    <html>
+                    <head>
+                        <style>
+                            body {
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: center;
+                                height: 100vh;
+                                margin: 0;
+                                font-family: Arial, sans-serif;
+                                color: #e53935;
+                            }
+                            .error-icon {
+                                font-size: 48px;
+                                margin-bottom: 20px;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="error-icon">⚠️</div>
+                        <div>Lỗi khi kết nối đến API: ${error.message}</div>
+                    </body>
+                    </html>
+                `;
             } finally {
                 compileBtn.disabled = false;
             }
@@ -343,8 +667,19 @@
         // Gắn sự kiện
         document.getElementById('compile-btn').addEventListener('click', compileLaTeX);
         
+        // Thêm phím tắt Ctrl+Enter để biên dịch
+        document.getElementById('tex-editor').addEventListener('keydown', function(event) {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                event.preventDefault();
+                compileLaTeX();
+            }
+        });
+        
         // Kiểm tra trạng thái khi trang tải
         window.addEventListener('load', checkApiStatus);
+        
+        // Cập nhật trạng thái API mỗi 30 giây
+        setInterval(checkApiStatus, 30000);
     </script>
 </body>
 </html>
